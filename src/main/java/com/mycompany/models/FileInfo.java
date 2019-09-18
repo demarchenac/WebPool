@@ -14,18 +14,30 @@ import java.util.ArrayList;
 public class FileInfo {
     private String filename;
     private String lastSource;
+    private int lastSourceIndex;
     private ArrayList<String> availableSoruces;
 
     public FileInfo(String filename) {
         this.filename = filename;
         this.availableSoruces = new ArrayList<String>();
         this.lastSource = "0.0.0.0";
+        this.lastSourceIndex = -1;
     }
 
     public void addFileSource(String source){
         if(!availableSoruces.contains(source)){
             availableSoruces.add(source);
         }
+    }
+    
+    public void removeFileSource(String source){
+        if(availableSoruces.contains(source)){
+            availableSoruces.remove(source);
+        }
+    }
+    
+    public boolean fileSourceExists(String source){
+        return availableSoruces.contains(source);
     }
     
     public String getFilename() {
@@ -43,6 +55,21 @@ public class FileInfo {
     public void setAvailableSoruces(ArrayList<String> availableSoruces) {
         this.availableSoruces = availableSoruces;
     }
-    
-    
+
+    public String getLastSource() {
+        return lastSource;
+    }
+
+    public void setLastSource(String lastSource) {
+        this.lastSource = lastSource;
+        
+    }
+
+    public int getLastSourceIndex() {
+        return lastSourceIndex;
+    }
+
+    public void setLastSourceIndex(int lastSourceIndex) {
+        this.lastSourceIndex = lastSourceIndex;
+    }
 }

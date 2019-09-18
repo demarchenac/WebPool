@@ -74,6 +74,7 @@ public class UtilController {
     @Produces(MediaType.APPLICATION_JSON)
     public String removeServerFromServerList(@PathParam("ip") String ip){
         ServerPool.serverList.remove(ip);
+        ServerPool.removeSoruce(ip);
         System.out.println("[LBS] Server@" +ip +" removed");
         return gson.toJson(new Response(true, "", gson.toJson(new SinglePropQuery("Server removed"))));
     }

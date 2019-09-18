@@ -42,4 +42,58 @@ public class ServerPool {
         }
         return response;
     }
+
+    public static ArrayList<String> getFileList(){
+    
+        ArrayList<String> response = new ArrayList<String>();
+        for(FileInfo fi: files){
+            response.add(fi.getFilename());
+        }
+        return response;
+    }
+    
+    public static void removeSoruce(String source){
+        for(FileInfo fi: files){
+            if(fi.getAvailableSoruces().contains(source)){
+               fi.removeFileSource(source);
+            }
+        }
+    }
+    
+    public static String selectSourceForFile(String filename){
+        String response = "";
+        
+        int index = getIndexOf(filename);
+        if(index >= 0){
+            FileInfo fi = files.get(index);
+            ArrayList<String> sources = fi.getAvailableSoruces(); 
+            if(sources.size() > 0){
+                if(fi.getLastSource().equals("0.0.0.0")){
+                    fi.setLastSourceIndex(0);
+                    fi.setLastSource(sources.get(0));
+                    response = sources.get(0);
+                }else if(fi.fileSourceExists(fi.getLastSource())){
+                    if(fi.getLastSourceIndex() >= sources.size() -1){
+                        fi.setLastSourceIndex(0);
+                        fi.setLastSource(sources.get(0));
+                        response = sources.get(0);
+                    }else{
+                        fi.setLastSourceIndex(fi.getLastSourceIndex() +1);
+                        fi.setLastSource(sources.get(fi.getLastSourceIndex() +1));
+                        response = sources.get(fi.getLastSourceIndex() +1);
+                    }
+                }else if(!fi.fileSourceExists(fi.getLastSource())){
+                    if(fi.getLastSourceIndex() >= sources.size() -1){
+                        fi.setLastSourceIndex(0);
+                        fi.setLastSource(sources.get(0));
+                        response = sources.get(0);
+                    }else{
+                        fi.setLastSource(sources.get(fi.getLastSourceIndex()));
+                        response = sources.get(fi.getLastSourceIndex());
+                    }
+                }
+            }
+        }
+        return response;
+    }
 }

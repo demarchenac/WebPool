@@ -5,7 +5,6 @@
  */
 package com.mycompany.services;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -16,22 +15,19 @@ import javax.ws.rs.core.MediaType;
  * Dependencies
  */
 import com.google.gson.Gson;
-import com.mycompany.models.Response;
-import com.mycompany.models.ServerAddress;
-import com.mycompany.models.ServerPool;
-import com.mycompany.models.SinglePropQuery;
-import com.mycompany.utils.Constants;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+
+import com.mycompany.models.Response;
+import com.mycompany.models.ServerPool;
+import com.mycompany.utils.Constants;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.ws.rs.PathParam;
 
 /**
  *
@@ -49,37 +45,52 @@ public class FileController
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String listAllFiles() throws UnknownHostException{
-        return gson.toJson(new Response(true, "", gson.toJson(ServerPool.files)));
+        return gson.toJson(new Response(true, "", gson.toJson(ServerPool.getFileList())));
     }
     
-    private ArrayList getFileListFromServer(String server) throws Exception {
+    @GET
+    @Path("/{filename}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public javax.ws.rs.core.Response getFile(@PathParam("filename") String filename) {
+        String server = selectServerToDownloadFile(filename);
+        if(!server.equals("")){
+            try {
+                InputStream is = loadFileFromServer(server, filename);
+                return javax.ws.rs.core.Response
+                    .ok(is, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"" ) 
+                    .build();
+            } catch (Exception ex) {
+                return javax.ws.rs.core.Response
+                    .status(javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE)
+                    .build();
+            }
+        }else{
+            //Respond with 404
+            return javax.ws.rs.core.Response
+                .status(javax.ws.rs.core.Response.Status.NOT_FOUND)
+                .build();
+        }
+    }
+    
+    private String selectServerToDownloadFile(String filename){
+        return ServerPool.selectSourceForFile(filename);
+    }
+    
+    private InputStream loadFileFromServer(String server, String filename) throws Exception {
 
-        String url = "http://" +server +":8080/FileServer/api/files";
+        String url = "http://" +server +":8080/FileServer/api/files" +"/" +filename;
 
         HttpClient client = HttpClients.createDefault();
         HttpGet request = new HttpGet(url);
 
-        // add header
-        request.setHeader("User-Agent", Constants.USER_AGENT);
-
-        System.out.println("[FS] Sending register request");
+        // add request header
+        request.addHeader("User-Agent", Constants.USER_AGENT);
+        
+        System.out.println("[LBS] Requesting " +filename +" to server@" +server);
+        
         HttpResponse response = client.execute(request);
-        System.out.println("[FS] Response Code : " + 
-                            response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-                result.append(line);
-        }
-        
-        System.out.println("[LBS] "+result.toString());
-        
-        Response r = gson.fromJson(result.toString(), Response.class);
-        ArrayList<String> fileList = gson.fromJson(r.getData(), ArrayList.class);
-        return fileList;
+        return response.getEntity().getContent();
     }
 }
