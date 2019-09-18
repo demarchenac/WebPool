@@ -49,21 +49,7 @@ public class FileController
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String listAllFiles() throws UnknownHostException{
-        ArrayList<String> response = new ArrayList<String>();
-        ArrayList<String> tempFileList;
-        for (String server : ServerPool.serverList) {
-            try {
-                tempFileList = getFileListFromServer(server);
-                for(String file : tempFileList){
-                    if(!response.contains(file)){
-                        response.add(file);
-                    }
-                }
-            } catch (Exception ex) {
-                Logger.getLogger(FileController.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return gson.toJson(new Response(true, "", gson.toJson(response)));
+        return gson.toJson(new Response(true, "", gson.toJson(ServerPool.files)));
     }
     
     private ArrayList getFileListFromServer(String server) throws Exception {

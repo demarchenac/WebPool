@@ -6,9 +6,11 @@
 package com.mycompany.services;
 
 import com.google.gson.Gson;
+import com.mycompany.models.FileInfo;
 import com.mycompany.models.Response;
 import com.mycompany.models.ServerAddress;
 import com.mycompany.models.ServerPool;
+import com.mycompany.models.ServerRegistrationQuery;
 import com.mycompany.models.SinglePropQuery;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -51,10 +53,20 @@ public class UtilController {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String addServerToServerList(String body){
-        SinglePropQuery serverIp = gson.fromJson(body, SinglePropQuery.class);
-        ServerPool.serverList.add(serverIp.getData());
-        System.out.println("[LBS] Added server ip: " +serverIp.getData());
-        return gson.toJson(new Response(true, "", "Added server: " +serverIp.getData()));
+        ServerRegistrationQuery sr = gson.fromJson(body, ServerRegistrationQuery.class);
+        ServerPool.serverList.add(sr.getServerIp());
+        int bookmark = 0;
+        for(String filename: sr.getFileList()){
+            if(ServerPool.contains(filename)){
+                bookmark = ServerPool.getIndexOf(filename);
+                ServerPool.files.get(bookmark).addFileSource(sr.getServerIp());
+            }else{
+                FileInfo fi = new FileInfo(filename);
+                ServerPool.addFile(filename, sr.getServerIp());
+            }
+        }
+        System.out.println("[LBS] Added server ip: " +sr.getServerIp());
+        return gson.toJson(new Response(true, "", "Added server: " +sr.getServerIp()));
     }
     
     @DELETE
