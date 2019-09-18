@@ -15,6 +15,8 @@ import javax.ws.rs.core.MediaType;
  * Dependencies
  */
 import com.google.gson.Gson;
+import com.mycompany.models.FileInfo;
+import com.mycompany.models.FileRegistrationQuery;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -23,10 +25,13 @@ import org.apache.http.impl.client.HttpClients;
 
 import com.mycompany.models.Response;
 import com.mycompany.models.ServerPool;
+import com.mycompany.models.ServerRegistrationQuery;
 import com.mycompany.utils.Constants;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 
 /**
@@ -71,6 +76,37 @@ public class FileController
                 .status(javax.ws.rs.core.Response.Status.NOT_FOUND)
                 .build();
         }
+    }
+    
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String addServerToServerList(String body){
+        FileRegistrationQuery frq = gson.fromJson(body, FileRegistrationQuery.class);
+        int bookmark = 0;
+        if(ServerPool.contains(frq.getFilename())){
+            bookmark = ServerPool.getIndexOf(frq.getFilename());
+            ServerPool.files.get(bookmark).addFileSource(frq.getServerIp());
+        }else{
+            FileInfo fi = new FileInfo(frq.getFilename());
+            ServerPool.addFile(frq.getFilename(), frq.getServerIp());
+        }
+        System.out.println(
+            "[LBS] File (" +
+            frq.getFilename() +
+            ") notification from server ip: " 
+            +frq.getServerIp()
+        );
+        
+        return gson.toJson(
+            new Response(
+                true, 
+                "", 
+                "File (" +frq.getFilename() +
+                ") added from server@" 
+                +frq.getServerIp()
+            )
+        );
     }
     
     private String selectServerToDownloadFile(String filename){
