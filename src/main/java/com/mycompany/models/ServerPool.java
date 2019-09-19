@@ -67,30 +67,15 @@ public class ServerPool {
         if(index >= 0){
             FileInfo fi = files.get(index);
             ArrayList<String> sources = fi.getAvailableSoruces(); 
-            if(sources.size() > 0){
-                if(fi.getLastSource().equals("0.0.0.0")){
-                    fi.setLastSourceIndex(0);
-                    fi.setLastSource(sources.get(0));
-                    response = sources.get(0);
-                }else if(fi.fileSourceExists(fi.getLastSource())){
-                    if(fi.getLastSourceIndex() >= sources.size() -1){
-                        fi.setLastSourceIndex(0);
-                        fi.setLastSource(sources.get(0));
-                        response = sources.get(0);
-                    }else{
-                        fi.setLastSourceIndex(fi.getLastSourceIndex() +1);
-                        fi.setLastSource(sources.get(fi.getLastSourceIndex() +1));
-                        response = sources.get(fi.getLastSourceIndex() +1);
-                    }
-                }else if(!fi.fileSourceExists(fi.getLastSource())){
-                    if(fi.getLastSourceIndex() >= sources.size() -1){
-                        fi.setLastSourceIndex(0);
-                        fi.setLastSource(sources.get(0));
-                        response = sources.get(0);
-                    }else{
-                        fi.setLastSource(sources.get(fi.getLastSourceIndex()));
-                        response = sources.get(fi.getLastSourceIndex());
-                    }
+            if(sources.size() > 0){                 
+                if(fi.fileSourceExists(fi.getLastSource())){
+                    int nextServer = (fi.getLastSourceIndex() +1) % sources.size();
+                    fi.setLastSourceIndex(nextServer);
+                    fi.setLastSoruce(sources.get(nextServer));
+                    response = sources.get(nextServer);
+                }else{
+                    fi.setLastSource(sources.get(fi.getLastSourceIndex()));
+                    response = sources.get(fi.getLastSourceIndex());
                 }
             }
         }
