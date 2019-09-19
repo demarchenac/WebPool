@@ -57,7 +57,9 @@ public class FileController
     @Path("/{filename}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public javax.ws.rs.core.Response getFile(@PathParam("filename") String filename) {
+        System.out.println("[LBS] Round robin!");
         String server = selectServerToDownloadFile(filename);
+        System.out.println("[LBS] Selected file server: " +server);
         if(!server.equals("")){
             try {
                 InputStream is = loadFileFromServer(server, filename);
