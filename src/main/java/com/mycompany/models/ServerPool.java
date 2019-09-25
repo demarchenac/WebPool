@@ -68,15 +68,10 @@ public class ServerPool {
             FileInfo fi = files.get(index);
             ArrayList<String> sources = fi.getAvailableSoruces(); 
             if(sources.size() > 0){                 
-                if(fi.fileSourceExists(fi.getLastSource())){
-                    int nextServer = (fi.getLastSourceIndex() +1) % sources.size();
-                    fi.setLastSourceIndex(nextServer);
-                    fi.setLastSoruce(sources.get(nextServer));
-                    response = sources.get(nextServer);
-                }else{
-                    fi.setLastSource(sources.get(fi.getLastSourceIndex()));
-                    response = sources.get(fi.getLastSourceIndex());
-                }
+                int nextServer = (fi.getLastSourceIndex() +1) % sources.size();
+                fi.setLastSourceIndex(nextServer);
+                fi.setLastSource(sources.get(nextServer));
+                response = sources.get(nextServer);
             }
         }
         return response;
